@@ -28,7 +28,6 @@ size_t WriteData(char *ptr, size_t element_size, size_t num_elements, std::strin
 std::string Downloader::makeRequest(const std::string &endpoint) {
     // Combine the base API endpoint with the provided endpoint.
     std::string url = m_apiEndpoint + endpoint;
-    std::cout << url << std::endl;
 
     // Create a string to store the response.
     std::string response;

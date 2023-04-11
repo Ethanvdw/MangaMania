@@ -90,8 +90,13 @@ Manga getManga(Downloader &downloader) {
     }
     std::vector<Manga> manga_list = downloader.searchManga(mangaName, includeTagsVector, excludeTagsVector);
 
+    // Define colour escape sequences.
+    const std::string GREEN = "\033[32m";
+    const std::string RESET = "\033[0m";
+
     for (int i = 0; i < manga_list.size(); i++) {
-        std::cout << i + 1 << ". " << manga_list[i].getTitle() << std::endl;
+        std::cout << GREEN << i + 1 << ". " << manga_list[i].getTitle() << RESET << GREEN << std::endl;
+        std::cout << RESET << "" << manga_list[i].getDescription() << std::endl;
     }
 
     // Ask the user to select a manga.
@@ -156,6 +161,22 @@ void manageMangaProgress(Downloader &downloader, UserProgressRecorder &progressR
     if (choice == 1) {
         // View progress
         progressRecorder.viewAllProgress();
+    }
+
+    if (choice == 2) {
+        // Add progress
+        Manga manga_choice = getManga(downloader);
+        Manga::Chapter chapter_choice = getChapter(downloader, manga_choice);
+
+        progressRecorder.addProgress(manga_choice, chapter_choice);
+    }
+
+    if (choice == 3) {
+        std::cout << "Enter the UUID of the manga you want to remove progress for: ";
+        std::string mangaUuid;
+        std::cin >> mangaUuid;
+
+        progressRecorder.removeProgress(mangaUuid);
     }
 }
 

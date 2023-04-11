@@ -88,15 +88,25 @@ void UserProgressRecorder::viewAllProgress() {
         std::string chapterTitle = fields[3];
         std::string timestamp = fields[4];
 
+        // Define colour escape sequences.
         const std::string GREEN = "\033[32m";
         const std::string RESET = "\033[0m";
 
-        std::cout << std::left << std::setw(15) << "Manga UUID:"    << std::setw(30) << mangaUuid    << std::endl;
-        std::cout << std::left << GREEN << std::setw(15) << "Manga Title:"   << RESET << GREEN << std::setw(30) << mangaTitle   << RESET << std::endl;
-        std::cout << std::left << std::setw(15) << "Chapter UUID:"  << std::setw(30) << chapterUuid << std::endl;
-        std::cout << std::left << GREEN << std::setw(15) << "Chapter Title:" << RESET << GREEN << std::setw(30) << chapterTitle << RESET << std::endl;
-        std::cout << std::left << std::setw(15) << "Timestamp:"     << std::setw(30) << timestamp    << std::endl;
-
+        // Top Border
+        std::cout << std::setfill('=') << std::setw(70) << "" << std::endl;
+// Output with Borders
+        std::cout << std::setfill(' ')
+                  << std::left << std::setw(15) << "Manga UUID:" << std::setw(30) << mangaUuid << std::endl;
+        std::cout << std::left << GREEN << std::setw(15) << "Manga Title:" << RESET << GREEN << std::setw(30)
+                  << mangaTitle << RESET << std::endl;
+        std::cout << std::left << std::setw(15) << "Chapter UUID:" << std::setw(30) << chapterUuid << std::endl;
+        std::cout << std::left << GREEN << std::setw(15) << "Chapter Title:" << RESET << GREEN << std::setw(30)
+                  << chapterTitle << RESET << std::endl;
+        std::cout << std::left << std::setw(15) << "Timestamp:" << std::setw(30) << timestamp << std::endl;
+// Bottom Border
+        std::cout << std::setfill('=') << std::setw(70) << "" << std::endl;
+// Reset fill character
+        std::cout << std::setfill(' ');
     }
 
 
