@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/MangaMania.dir/main.cpp.o CMakeFiles/MangaMania.dir/Downloader.cpp.o CMakeFiles/MangaMania.dir/Manga.cpp.o CMakeFiles/MangaMania.dir/UserProgressRecorder.cpp.o -o MangaMania  /usr/lib/x86_64-linux-gnu/libcurl.so 
