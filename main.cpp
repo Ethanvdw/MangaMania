@@ -90,6 +90,13 @@ Manga getManga(Downloader &downloader) {
     }
     std::vector<Manga> manga_list = downloader.searchManga(mangaName, includeTagsVector, excludeTagsVector);
 
+    // Early return if the manga list is empty.
+    if (manga_list.empty()) {
+        std::cout << "No manga found." << std::endl;
+        return {};
+    }
+
+
     // Define colour escape sequences.
     const std::string GREEN = "\033[32m";
     const std::string RESET = "\033[0m";
@@ -110,6 +117,13 @@ Manga getManga(Downloader &downloader) {
 Manga::Chapter getChapter(Downloader &downloader, Manga &manga) {
     // Search for the chapter
     std::vector<Manga::Chapter> chapter_list = downloader.searchChapter(manga.getUuid());
+
+// Early return if the chapter list is empty.
+    if (chapter_list.empty()) {
+        std::cout << "No chapters found. This manga will not be downloaded or saved." << std::endl;
+        return {};
+    }
+
     for (int i = 0; i < chapter_list.size(); i++) {
         std::cout << i + 1 << ". " << chapter_list[i].title << std::endl;
     }
@@ -123,7 +137,14 @@ Manga::Chapter getChapter(Downloader &downloader, Manga &manga) {
 
 void downloadManga(Downloader &downloader, UserProgressRecorder &progressRecorder) {
     Manga manga_choice = getManga(downloader);
+
+    // Check if the manga_choice is empty
+    if (manga_choice.getUuid().empty()) {
+        return;
+    }
+
     Manga::Chapter chapter_choice = getChapter(downloader, manga_choice);
+
 
     std::cout << "Manga: " << manga_choice.getTitle() << std::endl;
     std::cout << "Chapter: " << chapter_choice.title << std::endl;
@@ -149,36 +170,45 @@ void downloadManga(Downloader &downloader, UserProgressRecorder &progressRecorde
 
 }
 
-void manageMangaProgress(Downloader &downloader, UserProgressRecorder &progressRecorder ) {
-    std::cout << "Manage manga progress" << std::endl;
-    std::cout << "1. View progress" << std::endl;
-    std::cout << "2. Add progress" << std::endl;
-    std::cout << "3. Remove progress" << std::endl;
+    void manageMangaProgress(Downloader &downloader, UserProgressRecorder &progressRecorder) {
+        std::cout << "Manage manga progress" << std::endl;
+        std::cout << "1. View progress" << std::endl;
+        std::cout << "2. Add progress" << std::endl;
+        std::cout << "3. Remove progress" << std::endl;
 
-    int choice;
-    std::cin >> choice;
+        int choice;
+        std::cin >> choice;
 
-    if (choice == 1) {
-        // View progress
-        progressRecorder.viewAllProgress();
+        if (choice == 1) {
+            // View progress
+            progressRecorder.viewAllProgress();
+        }
+
+        if (choice == 2) {
+            // Add progress
+            Manga manga_choice = getManga(downloader);
+
+            // Check if the manga_choice is empty
+            if (manga_choice.getUuid().empty()) {
+                return;
+            }
+            Manga::Chapter chapter_choice = getChapter(downloader, manga_choice);
+
+            if (chapter_choice.uuid.empty()) {
+                return;
+            }
+
+            progressRecorder.addProgress(manga_choice, chapter_choice);
+        }
+
+        if (choice == 3) {
+            std::cout << "Enter the UUID of the manga you want to remove progress for: ";
+            std::string mangaUuid;
+            std::cin >> mangaUuid;
+
+            progressRecorder.removeProgress(mangaUuid);
+        }
     }
-
-    if (choice == 2) {
-        // Add progress
-        Manga manga_choice = getManga(downloader);
-        Manga::Chapter chapter_choice = getChapter(downloader, manga_choice);
-
-        progressRecorder.addProgress(manga_choice, chapter_choice);
-    }
-
-    if (choice == 3) {
-        std::cout << "Enter the UUID of the manga you want to remove progress for: ";
-        std::string mangaUuid;
-        std::cin >> mangaUuid;
-
-        progressRecorder.removeProgress(mangaUuid);
-    }
-}
 
 
 int main() {
@@ -190,30 +220,35 @@ int main() {
 
     int choice;
     do {
-        std::cout << "What would you like to do?" << std::endl;
-        std::cout << "1. Search for manga" << std::endl;
-        std::cout << "2. Manage manga progress" << std::endl;
+        std::cout << "Please choose an option:" << std::endl;
+        std::cout << "1. Download manga" << std::endl;
+        std::cout << "2. Manage library" << std::endl;
         std::cout << "3. Exit" << std::endl;
         std::cin >> choice;
 
-        if (choice == 1) {
-            downloadManga(downloader, progressRecorder);
-        } else if (choice == 2) {
-            manageMangaProgress(downloader, progressRecorder);
-//        } else if (choice == 3) {
-//            std::cout << "Goodbye!" << std::endl;
-//        } else {
-//            std::cout << "Invalid choice. Please try again." << std::endl;
-//        }
+        if (std::cin.fail()) {
+            std::cout << "Invalid input. Please try again." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        } else if (choice < 1 || choice > 3) {
+            std::cout << "Invalid input. Please try again." << std::endl;
+        } else {
+            switch (choice) {
+                case 1:
+                    downloadManga(downloader, progressRecorder);
+                    break;
+                case 2:
+                    manageMangaProgress(downloader, progressRecorder);
+                    break;
+                case 3:
+                    std::cout << "Exiting..." << std::endl;
+                    break;
+            }
         }
-
-        //TODO: Implement the rest of the menu.
-        //TODO: Error handling.
-
     } while (choice != 3);
 
-    // clean up
-    std::filesystem::remove_all(TEMP_DIR);
+
+    std::filesystem::remove_all(TEMP_DIR);    // clean up
 
     return 0;
 }

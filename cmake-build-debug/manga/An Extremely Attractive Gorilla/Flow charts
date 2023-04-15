@@ -1,0 +1,82 @@
+@startuml
+title Main
+
+start
+:Remove all temporary files;
+:Create downloader object;
+:Create user progress recorder object;
+:Display welcome message;
+
+repeat
+    :Display menu;
+    :Get user choice;
+    if (Invalid input?) then (yes)
+        :Display error message;
+        :Clear input buffer;
+    else (no)
+        if (Choice is 1?) then (yes)
+            :Download manga;
+        else (Choice is 2?)
+            :Manage library;
+        endif
+        if (Choice is not 3?) then (yes)
+            :Display menu again;
+        else (no)
+            :Exit program;
+        endif
+    endif
+repeat while (Choice is not 3?)
+
+:Remove all temporary files;
+
+stop
+@enduml
+
+
+@startuml
+title downloadManga Flowchart
+
+start
+:Get manga from downloader;
+if (Manga choice is empty?) then (yes)
+    :Return;
+else (no)
+    :Get chapter from downloader and manga_choice;
+    :Display manga and chapter details;
+    :Download chapter images to temporary directory;
+    :Convert images to PDF and save to output directory;
+    :Ask user if they want to add to progress;
+    if (User selects yes?) then (yes)
+        :Add chapter to user's progress;
+    endif
+endif
+stop
+@enduml
+
+
+@startuml
+title manageMangaProgress Flowchart
+
+start
+:Display options to user;
+:Get user's choice;
+if (Choice == 1) then (yes)
+    :View progress;
+else if (Choice == 2) then (yes)
+    :Get manga choice from downloader;
+    if (Manga choice is empty?) then (yes)
+        :Return;
+    else (no)
+        :Get chapter choice from downloader and manga_choice;
+        if (Chapter choice is empty?) then (yes)
+            :Return;
+        else (no)
+            :Add progress to user's progress;
+        endif
+    endif
+else if (Choice == 3) then (yes)
+    :Get the UUID of the manga to remove progress for;
+    :Remove progress for the manga with the given UUID;
+endif
+stop
+@enduml

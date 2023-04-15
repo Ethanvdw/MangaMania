@@ -8,6 +8,34 @@
 #include "UserProgressRecorder.h"
 #include "Manga.h"
 
+// Define colour escape sequences.
+const std::string GREEN = "\033[32m";
+const std::string RESET = "\033[0m";
+
+void printWithBorders(const std::string &mangaUuid,
+                      const std::string &mangaTitle,
+                      const std::string &chapterUuid,
+                      const std::string &chapterTitle,
+                      const std::string &timestamp) {
+    // Output top border
+    std::cout << std::setfill('=') << std::setw(70) << "" << std::endl;
+    std::cout << std::setfill(' ');
+
+    // Output fields with green color
+    std::cout << std::left << std::setw(15) << "Manga UUID:" << std::setw(30) << mangaUuid << '\n';
+    std::cout << std::left << GREEN << std::setw(15) << "Manga Title:" << RESET << GREEN << std::setw(30)
+              << mangaTitle << RESET << '\n';
+    std::cout << std::left << std::setw(15) << "Chapter UUID:" << std::setw(30) << chapterUuid << '\n';
+    std::cout << std::left << GREEN << std::setw(15) << "Chapter Title:" << RESET << GREEN << std::setw(30)
+              << chapterTitle << RESET << '\n';
+    std::cout << std::left << std::setw(15) << "Timestamp:" << std::setw(30) << timestamp << '\n';
+
+    // Output bottom border
+    std::cout << std::setfill('=') << std::setw(70) << "" << std::endl;
+
+    // Reset fill character
+    std::cout << std::setfill(' ');
+}
 
 UserProgressRecorder::UserProgressRecorder(const std::string &csvPath) {
     this->csvPath = csvPath;
@@ -32,10 +60,30 @@ UserProgressRecorder::~UserProgressRecorder() {
 void UserProgressRecorder::addProgress(Manga &manga, Manga::Chapter &chapter) {
     removeProgress(manga.getUuid());
 
+    // Move the file pointer to the end of the file
+    csvFile.seekp(0, std::ios::end);
+
+    // Check if the last character in the file is a newline
+    bool lastCharIsNewline = false;
+    if (csvFile.tellp() > 0) {
+        std::ifstream infile(csvPath);
+        infile.seekg(-1, std::ios::end);
+        char lastChar;
+        infile.get(lastChar);
+        lastCharIsNewline = (lastChar == '\n');
+    }
+
+    // If the last character in the file is not a newline, add a newline character
+    if (!lastCharIsNewline) {
+        csvFile << std::endl;
+    }
+
+    // Append the new content to the file
     csvFile << manga.getUuid() << "," << manga.getTitle() << ","
             << chapter.uuid << "," << chapter.title << ","
             << getCurrentTime() << std::endl;
 }
+
 
 void UserProgressRecorder::removeProgress(const std::string &mangaUUID) {
     std::ifstream inFile(csvPath);
@@ -88,31 +136,11 @@ void UserProgressRecorder::viewAllProgress() {
         std::string chapterTitle = fields[3];
         std::string timestamp = fields[4];
 
-        // Define colour escape sequences.
-        const std::string GREEN = "\033[32m";
-        const std::string RESET = "\033[0m";
+        printWithBorders(mangaUuid, mangaTitle, chapterUuid, chapterTitle, timestamp);
 
-        // Top Border
-        std::cout << std::setfill('=') << std::setw(70) << "" << std::endl;
-// Output with Borders
-        std::cout << std::setfill(' ')
-                  << std::left << std::setw(15) << "Manga UUID:" << std::setw(30) << mangaUuid << std::endl;
-        std::cout << std::left << GREEN << std::setw(15) << "Manga Title:" << RESET << GREEN << std::setw(30)
-                  << mangaTitle << RESET << std::endl;
-        std::cout << std::left << std::setw(15) << "Chapter UUID:" << std::setw(30) << chapterUuid << std::endl;
-        std::cout << std::left << GREEN << std::setw(15) << "Chapter Title:" << RESET << GREEN << std::setw(30)
-                  << chapterTitle << RESET << std::endl;
-        std::cout << std::left << std::setw(15) << "Timestamp:" << std::setw(30) << timestamp << std::endl;
-// Bottom Border
-        std::cout << std::setfill('=') << std::setw(70) << "" << std::endl;
-// Reset fill character
-        std::cout << std::setfill(' ');
     }
-
-
     file.close();
 }
-
 
 std::string UserProgressRecorder::getCurrentTime() {
     std::time_t now = std::time(nullptr);

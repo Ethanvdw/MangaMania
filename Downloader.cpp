@@ -29,6 +29,8 @@ std::string Downloader::makeRequest(const std::string &endpoint) {
     // Combine the base API endpoint with the provided endpoint.
     std::string url = m_apiEndpoint + endpoint;
 
+    std::cout << url << std::endl;
+
     // Create a string to store the response.
     std::string response;
 
@@ -77,6 +79,7 @@ std::vector<Manga> Downloader::searchManga(const std::string &mangaTitle, const 
         requestUrl += "&excludedTags[]=" + Downloader::tagMap[tag];
     }
 
+
     std::string response = makeRequest(requestUrl);
 
 
@@ -93,11 +96,35 @@ std::vector<Manga> Downloader::searchManga(const std::string &mangaTitle, const 
     // Return a vector of Manga objects.
     std::vector<Manga> mangaList;
     for (auto &element: json_object["data"]) {
+
         Manga manga;
-        manga.setTitle(element["attributes"]["title"]["en"]);
+
+        std::string title;
+
+
+        try {
+            title = element["attributes"]["title"]["en"];
+        }
+        catch (nlohmann::json::type_error &e) {
+            title = "No description available.";
+        }
+
+        manga.setTitle(title);
+
+
         // You'd hope this would actually keep it to just english, but some manga uploaders clearly can't read.
         // See e82504346f6-44f6-9436-e33c4fc6aece for an example.
-        std::string description = element["attributes"]["description"]["en"];
+//        std::string description = element["attributes"]["description"]["en"];
+
+        // Try to get the english description. If it doesn't exist, say "No description available."
+        std::string description;
+        try {
+            description = element["attributes"]["description"]["en"];
+        }
+        catch (nlohmann::json::type_error &e) {
+            description = "No description available.";
+        }
+
         std::replace(description.begin(), description.end(), '\n', ' ');
         manga.setDescription(description);
         manga.setUuid(element["id"]);
@@ -259,6 +286,12 @@ std::vector<Manga::Chapter> Downloader::searchChapter(const std::string &mangaUu
         // Increase the offset.
         offset = std::to_string(std::stoi(offset) + 100);
     }
+
+    // Check if the vector is empty.
+    if (chapters.empty()) {
+        return {};
+    }
+
     std::cout << "Found " << chapters.size() << " chapters." << std::endl;
     return chapters;
 }

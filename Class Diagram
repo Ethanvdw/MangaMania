@@ -1,0 +1,62 @@
+@startuml
+
+class Downloader {
+    - m_apiEndpoint : std::string
+    + Downloader(apiEndpoint: std::string)
+    + searchManga(mangaTitle: const std::string&) : std::vector<Manga>
+    + searchManga(mangaTitle: const std::string&, includeTags: const std::vector<std::string>&) : std::vector<Manga>
+    + searchManga(mangaTitle: const std::string&, includeTags: const std::vector<std::string>&, excludeTags: const std::vector<std::string>&) : std::vector<Manga>
+    + downloadImage(url: const std::string&, filename: const std::string&) : bool
+    + searchChapter(mangaUuid: const std::string&) : std::vector<Manga::Chapter>
+    + downloadChapter(chapter: Manga::Chapter&, directory: const std::string&) : bool
+    - makeRequest(endpoint: const std::string&) : std::string
+    - generateTagMap() : std::map<std::string, std::string>
+    - getImageLinks(chapter: Manga::Chapter&) : std::tuple<std::string, std::string, std::vector<std::string>>
+    - tagMap : std::map<std::string, std::string>
+}
+
+class UserProgressRecorder {
+    +UserProgressRecorder(csvPath: const std::string&)
+    ~UserProgressRecorder()
+    +addProgress(manga: Manga&, chapter: Manga::Chapter&)
+    +removeProgress(mangaUUID: const std::string&)
+    +viewAllProgress()
+
+    -csvPath: std::string
+    -csvFile: std::ofstream
+    +getCurrentTime(): std::string
+}
+class Manga {
+
+    -std::string m_title
+    -std::string m_uuid
+    -std::string m_description
+    -Chapter m_lastChapter
+
+    +Manga()
+    +Manga(std::string title, std::string uuid)
+    +std::string getTitle() const
+    +void setTitle(std::string title)
+    +std::string getUuid() const
+    +void setUuid(std::string uuid)
+    +std::string getDescription() const
+    +void setDescription(std::string description)
+    +Chapter getLastChapter() const
+    +void setLastChapter(Chapter lastChapter)
+}
+
+class Chapter {
+    +std::string uuid
+    +std::string title
+    +std::string volume
+    +std::string chapter
+    +std::string date
+    +std::string pageCount
+}
+
+Downloader --> Manga : retrieves
+Manga "1" *-- "*" Chapter : contains
+UserProgressRecorder --> Manga : records
+
+
+@enduml
