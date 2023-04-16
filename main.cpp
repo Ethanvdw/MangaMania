@@ -17,11 +17,11 @@ bool imagesToPDF(const std::string &input_dir, const std::string &output_dir, co
     std::cout << output_name << std::endl;
     std::cout << "Creating PDF..." << std::endl;
     std::string command = "img2pdf --rotation=ifvalid '" + input_dir + "'/* -o '" + output_dir + "/" + output_name +
-                          //                          ".pdf' 2>/dev/null";
-                          ".pdf'";
+                                                   ".pdf' 2>/dev/null";
+                        //   ".pdf'";
     // Some files have invalid rotation data. There is no way for me to fix this, so I have to suppress the error.
 
-    std::cout << command << std::endl;
+//    std::cout << command << std::endl;
     try {
         std::system(command.c_str());
     } catch (std::exception &e) {
@@ -53,7 +53,7 @@ void welcomeUser() {
 Manga getManga(Downloader &downloader) {
     // Ask the user to enter the name of the manga they want to download.
     std::string mangaName;
-    std::cout << "Enter the name of the manga you want to download: ";
+    std::cout << "Enter the name of the manga you want to search for: ";
     std::cin.ignore(); // Clear input buffer
     std::getline(std::cin, mangaName);
 
@@ -73,9 +73,10 @@ Manga getManga(Downloader &downloader) {
         std::string excludeTags;
 
         std::cout << "Enter the tags you want to include (separated by spaces): " << std::endl;
-        std::cin >> includeTags;
+        std::cin.ignore();
+        std::getline(std::cin, includeTags);
         std::cout << "Enter the tags you want to exclude (separated by spaces): " << std::endl;
-        std::cin >> excludeTags;
+        std::getline(std::cin, excludeTags);
 
         // Make every tag lowercase.
         std::transform(includeTags.begin(), includeTags.end(), includeTags.begin(), ::tolower);
@@ -108,7 +109,7 @@ Manga getManga(Downloader &downloader) {
 
     // Ask the user to select a manga.
     int choice;
-    std::cout << "Enter the number of the manga you want to download: ";
+    std::cout << "\033[1;34mEnter the number of the manga: \033[0m";
     std::cin >> choice;
 
     return manga_list[choice - 1];
@@ -129,7 +130,7 @@ Manga::Chapter getChapter(Downloader &downloader, Manga &manga) {
     }
     // Ask the user to select a chapter.
     int choice;
-    std::cout << "Enter the number of the chapter you want to download: ";
+    std::cout << "\033[1;34mEnter the number of the chapter you want to select: \033[0m"; //blue
     std::cin >> choice;
 
     return chapter_list[choice - 1];
@@ -151,10 +152,18 @@ void downloadManga(Downloader &downloader, UserProgressRecorder &progressRecorde
 
     // Download the images.
     std::cout << "Downloading images..." << std::endl;
-    downloader.downloadChapter(chapter_choice, TEMP_DIR);
+    if (!downloader.downloadChapter(chapter_choice, TEMP_DIR)) {
+        return;
+    }
+
     // Convert the images to a PDF.
     std::cout << "Converting images to PDF..." << std::endl;
-    std::string saveDirectory = OUTPUT_DIR + "/" + manga_choice.getTitle();
+    std::string saveDirectory;
+    if (manga_choice.getTitle().empty()) {
+        saveDirectory = OUTPUT_DIR + "/" + manga_choice.getUuid();
+    } else {
+        saveDirectory = OUTPUT_DIR + "/" + manga_choice.getTitle();
+    }
     imagesToPDF(TEMP_DIR, saveDirectory, chapter_choice.title);
 
     // Ask the user if they want to add this to their progress.
@@ -175,6 +184,7 @@ void downloadManga(Downloader &downloader, UserProgressRecorder &progressRecorde
         std::cout << "1. View progress" << std::endl;
         std::cout << "2. Add progress" << std::endl;
         std::cout << "3. Remove progress" << std::endl;
+        std::cout << "4. Exit" << std::endl;
 
         int choice;
         std::cin >> choice;
@@ -207,6 +217,10 @@ void downloadManga(Downloader &downloader, UserProgressRecorder &progressRecorde
             std::cin >> mangaUuid;
 
             progressRecorder.removeProgress(mangaUuid);
+        }
+
+        if (choice == 4) {
+            return;
         }
     }
 

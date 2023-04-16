@@ -29,7 +29,7 @@ std::string Downloader::makeRequest(const std::string &endpoint) {
     // Combine the base API endpoint with the provided endpoint.
     std::string url = m_apiEndpoint + endpoint;
 
-    std::cout << url << std::endl;
+    // std::cout << url << std::endl;
 
     // Create a string to store the response.
     std::string response;
@@ -160,12 +160,20 @@ std::map<std::string, std::string> Downloader::generateTagMap() {
 
 std::tuple<std::string, std::string, std::vector<std::string>> Downloader::getImageLinks(Manga::Chapter &chapter){
     std::vector<std::string> imageNames;
-
     std::string response = makeRequest("/at-home/server/" + chapter.uuid);
+
     nlohmann::json json_object = nlohmann::json::parse(response);
 
-    std::string server = json_object["baseUrl"];
-    std::string hash = json_object["chapter"]["hash"];
+    std::string server, hash;
+
+    try {
+        server = json_object["baseUrl"];
+        hash = json_object["chapter"]["hash"];
+    } catch (const std::exception& e) {
+        std::cout << "Sorry! This chapter is unavailable through Mangadex. Try something else" << std::endl;
+        return {};
+    }
+
 
     for (auto &element: json_object["chapter"]["data"]){
         imageNames.push_back(element);
@@ -182,11 +190,27 @@ std::tuple<std::string, std::string, std::vector<std::string>> Downloader::getIm
 
 
 bool Downloader::downloadChapter(Manga::Chapter &chapter, const std::string &directory) {
-    // Check if the directory exists and create it if it doesn't.
+    // Check if the directory exists and delete it if it does.
+    if (std::filesystem::exists(directory)) {
+        std::filesystem::remove_all(directory);
+    }
+
+
+    // Make the directory
     std::filesystem::create_directories(directory);
+
+
 
     // Call downloadImage for each image in the chapter.
     auto [server, hash, imageNames] = getImageLinks(chapter);
+
+    // If no images were found, return false.
+    if (imageNames.empty()) {
+        std::cout << "No images found for chapter " << chapter.title << std::endl;
+        return false;
+    }
+
+
     bool success = true;
     int imageCount = 1;
     for (const auto& imageName : imageNames) {
