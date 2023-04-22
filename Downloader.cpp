@@ -18,6 +18,7 @@ Downloader::Downloader(std::string apiEndpoint) : m_apiEndpoint(std::move(apiEnd
 }
 
 // A function that writes the received data to a string.
+// Based on the curl writeback function from https://curl.se/libcurl/c/CURLOPT_WRITEFUNCTION
 size_t WriteData(char *ptr, size_t element_size, size_t num_elements, std::string &data) {
     size_t size_of_data = element_size * num_elements;
     data.append(ptr, size_of_data);
