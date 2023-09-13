@@ -1,4 +1,3 @@
 # MangaMania
-
-A CLI application for Mangadex.
+A CLI download client for Mangadex
 Requires img2pdf
